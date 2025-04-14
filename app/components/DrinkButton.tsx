@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+
+
 type Props = {
     onPress: () => void;
 }
@@ -21,15 +23,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
-    width: wp('50%'),
-    height: hp('10%'),
+    width: wp('40%'),
+    height: hp('7%'),
     borderRadius: 30
   },
   pressedContainer: {
     backgroundColor: '#D3D3D3',
   },
   title: {
-    fontSize: hp('3%'),
+    fontSize: hp('2%'),
     fontWeight: 'bold',
   },
 });
