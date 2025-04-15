@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   // Layout
   container: {
     flex: 1,
-    backgroundColor: "#008EE5",
+    backgroundColor: '#5498FF',
   },
 
   // Header Section

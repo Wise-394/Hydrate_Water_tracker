@@ -4,7 +4,8 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { useSQLiteContext } from 'expo-sqlite';
 import { initDB, reset } from '@/utils/database';
 
-export default function Index() {
+
+export default function SettingsScreen() {
   const db = useSQLiteContext();
   
   useEffect(() => {

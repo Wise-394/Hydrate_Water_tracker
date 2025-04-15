@@ -1,39 +1,81 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
-import { Image } from 'react-native'; // Import Image from react-native
+import { Image, StyleSheet } from 'react-native';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import Index from '@/app/(tabs)/index';
+import LogsScreen from '@/app/(tabs)/logs';
+import SettingsScreen from '@/app/(tabs)/settings'
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+
+const Tab = createMaterialTopTabNavigator();
 
 export default function TabsLayout() {
   return (
-    <Tabs
+    <Tab.Navigator
       screenOptions={{
-        headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#008EE5',
+          backgroundColor: '#5498FF',
+        },
+        tabBarIndicatorStyle: {
+          backgroundColor: 'white'
         },
         tabBarShowLabel: false,
-        tabBarActiveBackgroundColor: '#68e1e1',
       }}
     >
-      <Tabs.Screen
-        name="index"
+      <Tab.Screen
+        name="home"
+        component={Index}
         options={{
-          tabBarIcon: () => (
-            <Image source={require('@/assets/images/icon/home.png')} />
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={require('@/assets/images/icon/home.png')}
+              style={{
+                width: hp('3%'),
+                height: hp('3%'),
+                tintColor: focused ? 'cyan' : 'white',
+                
+              }}
+            />
           ),
         }}
       />
-      <Tabs.Screen name="logs"
+      <Tab.Screen
+        name="logs"
+        component={LogsScreen}
         options={{
-          tabBarIcon: () => (
-            <Image source={require('@/assets/images/icon/droplet.png')} />
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={require('@/assets/images/icon/droplet.png')}
+              style={{
+                width: hp('3%'),
+                height: hp('3%'),
+                tintColor: focused ? 'cyan' : 'white',
+              }}
+            />
           ),
-        }} />
-      <Tabs.Screen name="settings"
+        }}
+      />
+      <Tab.Screen
+        name="settings"
+        component={SettingsScreen}
         options={{
-          tabBarIcon: () => (
-            <Image source={require('@/assets/images/icon/settings.png')} />
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={require('@/assets/images/icon/settings.png')}
+              style={{
+                width: hp('3%'),
+                height: hp('3%'),
+                tintColor: focused ? 'cyan' : 'white',
+              }}
+            />
           ),
-        }} />
-    </Tabs>
+        }}
+      />
+    </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    backgroundColor: '#5498FF'
+  }
+});
