@@ -9,8 +9,9 @@ export const initDB = async (db: SQLiteDatabase) => {
     `);
   };
   
-export const addWaterLog = async (db: SQLiteDatabase, date: string) => {
-  await db.runAsync("INSERT INTO waterLogs (date) VALUES (?);", [date]);
+export const addWaterLog = async (db: SQLiteDatabase, date: Date) => {
+  const isoDate = date.toString();
+  await db.runAsync("INSERT INTO waterLogs (date) VALUES (?);", [isoDate]);
 };
 
 

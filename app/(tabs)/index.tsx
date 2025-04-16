@@ -4,12 +4,13 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import DrinkButton from "../components/DrinkButton";
 import { useSQLiteContext } from 'expo-sqlite';
 import { initDB, addWaterLog, getAllWaterLogs} from '@/utils/database';
+import { useFocusEffect } from "expo-router";
 
 export default function Index() {
   const db = useSQLiteContext();
   const [drinkedCount, setDrinkedCount] = useState(0);
 
-  useEffect(() => {
+  useFocusEffect(() => {
     const initialize = async () => {
       await initDB(db);
       const count = await getAllWaterLogs(db)
@@ -17,12 +18,12 @@ export default function Index() {
     };
     
     initialize(); 
-  }, []);
+  },);
 
   const onPressDrinkWater = async () => {
     const count = await getAllWaterLogs(db)
     setDrinkedCount(count.length + 1);
-    addWaterLog(db,new Date().toISOString())
+    addWaterLog(db,new Date())
   };
 
   return (

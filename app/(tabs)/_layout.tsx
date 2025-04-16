@@ -19,6 +19,7 @@ export default function TabsLayout() {
           backgroundColor: 'white'
         },
         tabBarShowLabel: false,
+        
       }}
     >
       <Tab.Screen
