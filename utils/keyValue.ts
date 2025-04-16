@@ -11,5 +11,5 @@ export const getDailyCupIntake = () =>{
 }
 
 export const checkKey = () =>{
-    storage.contains('cupIntake')
+    return storage.contains('cupIntake')
 }
