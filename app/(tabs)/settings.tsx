@@ -1,18 +1,19 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, Image, Alert, TouchableOpacity, FlatList } from "react-native";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useSQLiteContext } from 'expo-sqlite';
 import { initDB, reset } from '@/utils/database';
-
+import CustomModal from '@/app/components/Modal'
 
 export default function SettingsScreen() {
   const db = useSQLiteContext();
-  
+  const [modalVisible, setModalVisible] = useState(false);
+
   useEffect(() => {
     const initialize = async () => {
       await initDB(db);
     };
-    initialize(); 
+    initialize();
   }, [db]);
 
   const handleReset = () => {
@@ -25,7 +26,7 @@ export default function SettingsScreen() {
   }
 
   const data = [
-    { text: "Change daily cup intake", onPress: () => console.log("Change intake pressed") },
+    { text: "Change daily cup intake", onPress: ()=> setModalVisible(true) },
     { text: "Reset", onPress: handleReset },
     { text: "Exit", onPress: () => console.log("Exit pressed") },
   ];
@@ -47,16 +48,20 @@ export default function SettingsScreen() {
       </View>
       <View style={styles.content}>
         <Text style={styles.sectionTitle}>Settings</Text>
-        <FlatList 
+        <FlatList
           data={data}
           renderItem={({ item }) => (
-            <SettingsItem 
-              text={item.text} 
-              onPress={item.onPress} 
+            <SettingsItem
+              text={item.text}
+              onPress={item.onPress}
             />
           )}
         />
       </View>
+      <CustomModal
+        modalVisible={modalVisible}
+        onClose={() => setModalVisible(false)}
+      />
     </View>
   );
 }
