@@ -5,16 +5,20 @@ import DrinkButton from "../components/DrinkButton";
 import { useSQLiteContext } from 'expo-sqlite';
 import { initDB, addWaterLog, getAllWaterLogs} from '@/utils/database';
 import { useFocusEffect } from "expo-router";
-
+import { checkKey, getDailyCupIntake, setDailyCupIntake } from '@/utils/keyValue';
 export default function Index() {
   const db = useSQLiteContext();
   const [drinkedCount, setDrinkedCount] = useState(0);
-
+  const[goalDailyIntake,setGoalDailyIntake] = useState(8);
   useFocusEffect(() => {
     const initialize = async () => {
       await initDB(db);
       const count = await getAllWaterLogs(db)
       setDrinkedCount(count.length);
+      if(checkKey()){
+        const goal = getDailyCupIntake()
+        setGoalDailyIntake(goal ?? 8)
+      }
     };
     
     initialize(); 
@@ -30,7 +34,7 @@ export default function Index() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Today</Text>
-        <Text style={styles.subtitle}>{drinkedCount} / 8 glass of water</Text>
+        <Text style={styles.subtitle}>{drinkedCount} / {goalDailyIntake} glass of water</Text>
       </View>
 
       <View style={styles.centerSection}>

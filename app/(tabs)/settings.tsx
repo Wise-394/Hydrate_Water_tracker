@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View, Image, Alert, TouchableOpacity, FlatList } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity, FlatList, Alert } from "react-native";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useSQLiteContext } from 'expo-sqlite';
 import { initDB, reset } from '@/utils/database';
-import CustomModal from '@/app/components/Modal'
+import CustomModal from '@/app/components/Modal';
+import SettingsItem from "../components/SettingsItem";
 
 export default function SettingsScreen() {
   const db = useSQLiteContext();
@@ -17,93 +18,102 @@ export default function SettingsScreen() {
   }, [db]);
 
   const handleReset = () => {
-    reset(db);
+    Alert.alert(
+      "Reset App",
+      "Are you sure you want to reset all data?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        { 
+          text: "Reset", 
+          onPress: () => {reset(db)},
+          style: "destructive"
+        }
+      ]
+    );
   }
 
-  interface Props {
-    text: string;
-    onPress?: () => void;
-  }
+ 
 
   const data = [
-    { text: "Change daily cup intake", onPress: ()=> setModalVisible(true) },
-    { text: "Reset", onPress: handleReset },
-    { text: "Exit", onPress: () => console.log("Exit pressed") },
+    { id: '1', text: "Change daily cup intake", onPress: ()=> setModalVisible(true) },
+    { id: '2', text: "Reset Data", onPress: handleReset },
+    { id: '3', text: "About", onPress: () => console.log("About pressed") },
   ];
 
-  const SettingsItem = ({ text, onPress }: Props) => (
-    <TouchableOpacity
-      onPress={onPress}
-      style={styles.item}
-    >
-      <Text style={styles.itemText}>{text}</Text>
-    </TouchableOpacity>
-  );
+
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Image source={require('@/assets/images/water.png')} style={styles.image} />
-        <Text style={styles.title}>Hydrate App</Text>
-      </View>
-      <View style={styles.content}>
-        <Text style={styles.sectionTitle}>Settings</Text>
+      <><View style={styles.header}>
+      <Image source={require('@/assets/images/water.png')} style={styles.image} />
+      <Text style={styles.title}>Hydrate App</Text>
+      <Text style={styles.subtitle}>Stay hydrated, stay healthy</Text>
+    </View><View style={styles.content}>
         <FlatList
           data={data}
-          renderItem={({ item }) => (
+          keyExtractor={(item) => item.id}
+          renderItem={({ item, index }) => (
             <SettingsItem
               text={item.text}
               onPress={item.onPress}
-            />
+              isLast={index === data.length - 1} />
           )}
-        />
-      </View>
-      <CustomModal
+          contentContainerStyle={styles.listContainer}
+          ListHeaderComponent={<Text style={styles.sectionTitle}>Settings</Text>}
+          showsVerticalScrollIndicator={false} />
+      </View><CustomModal
         modalVisible={modalVisible}
-        onClose={() => setModalVisible(false)}
-      />
-    </View>
+        onClose={() => setModalVisible(false)} /></>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
   },
   header: {
-    flex: 0.9,
+    paddingTop: hp('5%'),
+    paddingBottom: hp('2%'),
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    marginBottom: 10,
   },
   content: {
-    paddingHorizontal: '5%',
     flex: 1,
-    width: '100%',
+    paddingHorizontal: wp('5%'),
   },
   image: {
-    marginTop: hp('5%'),
-    width: wp("50%"),
-    height: hp("25%"),
+    width: wp("30%"),
+    height: hp("15%"),
     resizeMode: "contain",
   },
-  item: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  itemText: {
-    fontSize: 16,
+  listContainer: {
+    paddingBottom: hp('3%'),
   },
   title: {
-    fontSize: 24,
+    fontSize: hp('3.5%'),
     fontWeight: 'bold',
-    marginVertical: 10,
+    color: '#2c3e50',
+    marginTop: hp('1%'),
+    fontFamily: 'Inter-Bold',
+  },
+  subtitle: {
+    fontSize: hp('1.8%'),
+    color: '#7f8c8d',
+    marginBottom: hp('1%'),
+    fontFamily: 'Inter-Regular',
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: hp('2.5%'),
     fontWeight: '600',
-    marginBottom: 15,
-  }
+    color: '#2c3e50',
+    marginVertical: hp('2%'),
+    paddingLeft: 10,
+    fontFamily: 'Inter-SemiBold',
+  },
 });
