@@ -1,10 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { initDB, getAllWaterLogs } from '@/utils/database';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import LogsList from '@/app/components/LogsList';
+import { useWaterLog } from '@/contexts/WaterLogContext';
 
 interface WaterLog {
   id: number;
@@ -12,48 +13,53 @@ interface WaterLog {
   time: string;
 }
 
+const getLogs = async (db: any) => {
+  // Fetching all water logs
+  const logs = await getAllWaterLogs(db) as { id: number; date: string }[];
+
+  // Formatting the logs
+  const formattedLogs = logs.map(log => {
+    const dateObj = new Date(log.date);
+
+    const dateOptions: Intl.DateTimeFormatOptions = {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    };
+
+    const timeOptions: Intl.DateTimeFormatOptions = {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    };
+
+    const formattedDate = dateObj.toLocaleString('en-US', dateOptions);
+    const formattedTime = dateObj.toLocaleString('en-US', timeOptions);
+
+    return {
+      id: log.id,
+      date: formattedDate,
+      time: formattedTime,
+    };
+  });
+
+  return formattedLogs;
+};
 export default function LogsScreen() {
+  const { refreshKey } = useWaterLog();
   const db = useSQLiteContext();
   const [data, setData] = useState<WaterLog[]>([]);
 
-  useFocusEffect(
-    useCallback(() => {
-      const initialize = async () => {
-        await initDB(db);
-        const logs = await getAllWaterLogs(db) as { id: number; date: string }[];
+  useEffect(() => {
+    const initialize = async () => {
+      await initDB(db);
+      const logs = await getLogs(db);
+      setData(logs);
+    };
 
-        // Format each log date into day and time
-        const formattedLogs = logs.map(log => {
-          const dateObj = new Date(log.date);
-
-          const dateOptions: Intl.DateTimeFormatOptions = {
-            weekday: 'short',
-            day: 'numeric',
-            month: 'short',
-          };
-
-          const timeOptions: Intl.DateTimeFormatOptions = {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true,
-          };
-
-          const formattedDate = dateObj.toLocaleString('en-US', dateOptions);
-          const formattedTime = dateObj.toLocaleString('en-US', timeOptions);
-
-          return { 
-            id: log.id,
-            date: formattedDate,
-            time: formattedTime
-          };
-        });
-
-        setData(formattedLogs);
-      };
-
-      initialize();
-    }, [db])
-  );
+    initialize();
+  }, [db, refreshKey]);
+  
 
 
 

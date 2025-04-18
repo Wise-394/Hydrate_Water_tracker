@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 interface WaterLog {
@@ -11,13 +11,16 @@ interface WaterLog {
 
 const LogsList = ({ item }: { item: WaterLog }) => (
     <View style={styles.logItem}>
+        <View style={styles.waterDrop}>
+            <Text style={styles.waterDropText}>💧</Text>
+        </View>
         <View style={styles.logContent}>
             <Text style={styles.logDate}>{item.date}</Text>
             <Text style={styles.logTime}>{item.time}</Text>
         </View>
-        <View style={styles.waterDrop}>
-            <Text style={styles.waterDropText}>💧</Text>
-        </View>
+        <Pressable onPress={() => Alert.alert('test tile', 'test message')}>
+          <Text>🗑️</Text>
+        </Pressable>
     </View>
 );
 
@@ -27,6 +30,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderRadius: 12,
         padding: hp('2%'),
+        marginLeft: wp('1%'),
         marginBottom: hp('1.5%'),
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -38,6 +42,7 @@ const styles = StyleSheet.create({
         elevation: 2,
       },
       logContent: {
+        marginLeft: wp('1%'),
         flex: 1,
       },
       logDate: {

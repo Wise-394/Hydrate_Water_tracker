@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View, Image, TouchableOpacity, FlatList, Alert } from "react-native";
+import { StyleSheet, Text, View, Image, FlatList, Alert } from "react-native";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useSQLiteContext } from 'expo-sqlite';
-import { initDB, reset } from '@/utils/database';
+import { initDB, reset, getAllWaterLogs } from '@/utils/database';
 import CustomModal from '@/app/components/Modal';
 import SettingsItem from "../components/SettingsItem";
+import { resetKeyValue } from "@/utils/keyValue";
+import { useWaterLog } from '@/contexts/WaterLogContext';
 
 export default function SettingsScreen() {
   const db = useSQLiteContext();
+  const { refreshKey, triggerRefresh } = useWaterLog();  
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
@@ -28,44 +31,53 @@ export default function SettingsScreen() {
         },
         { 
           text: "Reset", 
-          onPress: () => {reset(db)},
+          onPress: () => {
+            reset(db); 
+            resetKeyValue();  
+            triggerRefresh();  
+          },
           style: "destructive"
         }
       ]
     );
-  }
+  };
 
- 
-
-  const data = [
-    { id: '1', text: "Change daily cup intake", onPress: ()=> setModalVisible(true) },
+  const dataSettings = [
+    { id: '1', text: "Change daily cup intake", onPress: () => setModalVisible(true) },
     { id: '2', text: "Reset Data", onPress: handleReset },
     { id: '3', text: "About", onPress: () => console.log("About pressed") },
   ];
 
-
-
   return (
-      <><View style={styles.header}>
-      <Image source={require('@/assets/images/water.png')} style={styles.image} />
-      <Text style={styles.title}>Hydrate App</Text>
-      <Text style={styles.subtitle}>Stay hydrated, stay healthy</Text>
-    </View><View style={styles.content}>
+    <>
+      <View style={styles.header}>
+        <Image source={require('@/assets/images/water.png')} style={styles.image} />
+        <Text style={styles.title}>Hydrate App</Text>
+        <Text style={styles.subtitle}>Stay hydrated, stay healthy</Text>
+      </View>
+
+      <View style={styles.content}>
         <FlatList
-          data={data}
+          data={dataSettings}
           keyExtractor={(item) => item.id}
           renderItem={({ item, index }) => (
             <SettingsItem
               text={item.text}
               onPress={item.onPress}
-              isLast={index === data.length - 1} />
+              isLast={index === dataSettings.length - 1}
+            />
           )}
           contentContainerStyle={styles.listContainer}
           ListHeaderComponent={<Text style={styles.sectionTitle}>Settings</Text>}
-          showsVerticalScrollIndicator={false} />
-      </View><CustomModal
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
+
+      <CustomModal
         modalVisible={modalVisible}
-        onClose={() => setModalVisible(false)} /></>
+        onClose={() => setModalVisible(false)}
+      />
+    </>
   );
 }
 

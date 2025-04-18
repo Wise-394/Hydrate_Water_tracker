@@ -1,63 +1,88 @@
-import React, { useState, useEffect } from "react";
-import { Button, Text, View, Image, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { Text, View, Image, StyleSheet } from "react-native";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import DrinkButton from "../components/DrinkButton";
 import { useSQLiteContext } from 'expo-sqlite';
-import { initDB, addWaterLog, getAllWaterLogs} from '@/utils/database';
+import { initDB, addWaterLog, getAllWaterLogs, getTodayWaterLogs } from '@/utils/database';
 import { useFocusEffect } from "expo-router";
-import { checkKey, getDailyCupIntake, setDailyCupIntake } from '@/utils/keyValue';
-export default function Index() {
-  const db = useSQLiteContext();
-  const [drinkedCount, setDrinkedCount] = useState(0);
-  const[goalDailyIntake,setGoalDailyIntake] = useState(8);
-  useFocusEffect(() => {
-    const initialize = async () => {
-      await initDB(db);
-      const count = await getAllWaterLogs(db)
-      setDrinkedCount(count.length);
-      if(checkKey()){
-        const goal = getDailyCupIntake()
-        setGoalDailyIntake(goal ?? 8)
-      }
-    };
-    
-    initialize(); 
-  },);
+import { checkKey, getDailyCupIntake } from '@/utils/keyValue';
+import { useWaterLog } from '@/contexts/WaterLogContext';
+// Default water intake goal if user hasn't set one
+const DEFAULT_DAILY_INTAKE_GOAL = 8;
 
-  const onPressDrinkWater = async () => {
-    const count = await getAllWaterLogs(db)
-    setDrinkedCount(count.length + 1);
-    addWaterLog(db,new Date())
+const Index = () => {
+  const db = useSQLiteContext();
+  const [consumedGlasses, setConsumedGlasses] = useState(0);
+  const [dailyIntakeGoal, setDailyIntakeGoal] = useState(DEFAULT_DAILY_INTAKE_GOAL);
+  const { refreshKey, triggerRefresh } = useWaterLog()
+  // Load initial data and check for user's custom goal
+  const initializeAppData = async () => {
+    try {
+      await initDB(db);
+      const waterLogs = await getTodayWaterLogs(db);
+      setConsumedGlasses(waterLogs);
+      
+      if (checkKey()) {
+        const goal = getDailyCupIntake();
+        setDailyIntakeGoal(goal ?? DEFAULT_DAILY_INTAKE_GOAL);
+      }
+    } catch (error) {
+      console.error("Initialization error:", error);
+    }
+  };
+
+  // Refresh data when screen comes into focus
+  useFocusEffect(React.useCallback(() => {
+    initializeAppData();
+  }, []));
+
+  // Handle recording a new glass of water
+  const handleDrinkWater = async () => {
+    try {
+      await addWaterLog(db, new Date());
+      const updatedLogs = await getTodayWaterLogs(db);
+      setConsumedGlasses(updatedLogs);
+      triggerRefresh();
+    } catch (error) {
+      console.error("Water logging error:", error);
+    }
   };
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Today</Text>
-        <Text style={styles.subtitle}>{drinkedCount} / {goalDailyIntake} glass of water</Text>
+        <Text style={styles.subtitle}>
+          {consumedGlasses} / {dailyIntakeGoal} glasses of water
+        </Text>
       </View>
 
-      <View style={styles.centerSection}>
+      {/* Main content with water image and button */}
+      <View style={styles.content}>
         <View style={styles.imageContainer}>
-          <Image source={require('@/assets/images/water.png')} style={styles.image} />
+          <Image 
+            source={require('@/assets/images/water.png')} 
+            style={styles.waterImage} 
+          />
         </View>
-        <DrinkButton onPress={onPressDrinkWater}/>
+        <DrinkButton onPress={handleDrinkWater} />
       </View>
-      <View style = {styles.footer}>
-        <Text style = {styles.footerText}>Drinking Streak</Text>
+
+      {/* Footer section for additional stats */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Drinking Streak</Text>
       </View>
     </View>
   );
-}
+};
+
 
 const styles = StyleSheet.create({
-  // Layout
   container: {
     flex: 1,
     backgroundColor: '#5498FF',
   },
-
-  // Header Section
   header: {
     flex: 0.5,
     alignItems: "center",
@@ -72,28 +97,28 @@ const styles = StyleSheet.create({
     fontSize: hp("3%"),
     color: "#fff",
   },
-  centerSection: {
+  content: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-
   imageContainer: {
     marginBottom: hp("5%"),
   },
-  image: {
+  waterImage: {
     width: wp("50%"),
     height: hp("25%"),
     resizeMode: "contain",
   },
-
   footer: {
     flex: 0.5,
-    backgroundColor: 'white'
+    backgroundColor: 'white',
+    alignItems: 'center',
   },
   footerText: {
-    padding: wp("1%"),
     fontSize: hp("3%"),
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   }
 });
+
+export default Index;

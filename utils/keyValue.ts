@@ -13,3 +13,7 @@ export const getDailyCupIntake = () =>{
 export const checkKey = () =>{
     return storage.contains('cupIntake')
 }
+
+export const resetKeyValue = () => {
+    setDailyCupIntake(8)
+}
