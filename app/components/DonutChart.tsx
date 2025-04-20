@@ -39,10 +39,10 @@ const styles = StyleSheet.create({
     width: hp('25%'),
     height: hp('25%'),
     borderRadius: hp('12.5%'),
-    backgroundColor: '#ffffff', // stroke color (white)
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 2, // stroke thickness
+    padding: 2, 
   },
   centerImage: {
     width: wp('20%'),

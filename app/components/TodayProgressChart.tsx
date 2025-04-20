@@ -10,14 +10,15 @@ interface Props {
 
 const TodayProgressChart = ({ goal, current }: Props) => {
   const pieData = [
-    { value: current, color: '#5498FF', label: 'Drank' },
     { value: goal - current, color: '#e6f2ff', label: 'Remaining' },
+    { value: current, color: '#5498FF', label: 'Drank' }
   ];
-  
+
   const completionPercentage = Math.floor((current / goal) * 100);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>Today</Text>
       <View style={styles.donutWrapper}>
         <PieChart
           data={pieData}
@@ -37,16 +38,18 @@ const TodayProgressChart = ({ goal, current }: Props) => {
       <View style={styles.legendContainer}>
         {pieData.map((item, index) => (
           <View key={index} style={styles.legendItem}>
-            <View style={[
-              styles.legendColor, 
-              { 
-                backgroundColor: item.color,
-                ...(item.color === 'white' && {
-                  borderWidth: 1,
-                  borderColor: '#ccc'
-                })
-              }
-            ]} />
+            <View
+              style={[
+                styles.legendColor,
+                {
+                  backgroundColor: item.color,
+                  ...(item.color === 'white' && {
+                    borderWidth: 1,
+                    borderColor: '#ccc'
+                  })
+                }
+              ]}
+            />
             <Text style={styles.legendText}>{item.label}</Text>
           </View>
         ))}
@@ -56,9 +59,8 @@ const TodayProgressChart = ({ goal, current }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    backgroundColor: 'white', // Added white background for better contrast
+  card: {
+    backgroundColor: 'white',
     borderRadius: 12,
     padding: wp('5%'),
     marginBottom: hp('2.5%'),
@@ -69,6 +71,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
+    alignItems: 'center',
+  },
+  cardTitle: {
+    fontSize: wp('5%'),
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: hp('1%'),
   },
   donutWrapper: {
     justifyContent: 'center',

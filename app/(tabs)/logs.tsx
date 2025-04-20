@@ -17,26 +17,21 @@ interface SectionData {
   data: WaterLog[];
 }
 
-const getLogs = async (db: any) => {
-  const logs = await getAllWaterLogs(db) as { id: number; date: string }[];
-
+const formatLogsIntoSections = (logs: { id: number; date: string }[]): SectionData[] => {
   const formattedLogs = logs.map(log => {
     const dateObj = new Date(log.date);
 
-    const dateOptions: Intl.DateTimeFormatOptions = {
+    const formattedDate = dateObj.toLocaleDateString('en-US', {
       weekday: 'short',
       day: 'numeric',
       month: 'short',
-    };
+    });
 
-    const timeOptions: Intl.DateTimeFormatOptions = {
+    const formattedTime = dateObj.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
-    };
-
-    const formattedDate = dateObj.toLocaleString('en-US', dateOptions);
-    const formattedTime = dateObj.toLocaleString('en-US', timeOptions);
+    });
 
     return {
       id: log.id,
@@ -51,42 +46,60 @@ const getLogs = async (db: any) => {
     grouped[log.date].push(log);
   });
 
-  const sections: SectionData[] = Object.entries(grouped).map(([date, logs]) => ({
-    title: date,
-    data: logs,
-  }));
-
-  return sections;
+  return Object.entries(grouped).map(([title, data]) => ({ title, data }));
 };
 
 export default function LogsScreen() {
-  const { refreshKey } = useWaterLog();
   const db = useSQLiteContext();
+  const { refreshKey } = useWaterLog();
+
   const [sections, setSections] = useState<SectionData[]>([]);
   const [visible, setVisible] = useState(false);
   const [deleteText, setDeleteText] = useState('delete');
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     const initialize = async () => {
-      await initDB(db);
-      const logs = await getLogs(db);
-      setSections(logs);
+      try {
+        await initDB(db);
+        setInitialized(true);
+      } catch (err) {
+        console.error('DB init failed:', err);
+      }
     };
-
     initialize();
+  }, []);
+
+  useEffect(() => {
+    const loadLogs = async () => {
+      try {
+        const rawLogs = await getAllWaterLogs(db) as { id: number; date: string }[];
+        const sections = formatLogsIntoSections(rawLogs);
+        setSections(sections);
+      } catch (err) {
+        console.error('Error loading logs:', err);
+      }
+    };
+  
+    loadLogs();
   }, [db, refreshKey]);
+  
 
   const handleDeleteToggle = () => {
-    setVisible(!visible);
-    setDeleteText(visible ? 'delete' : 'hide');
+    setVisible(prev => !prev);
+    setDeleteText(prev => (prev === 'delete' ? 'hide' : 'delete'));
   };
 
   const handleDeleteLog = async (id: number) => {
-    await deleteWaterLog(db, id);
-    const logs = await getLogs(db);
-    setSections(logs);
+    try {
+      await deleteWaterLog(db, id);
+      const rawLogs = await getAllWaterLogs(db) as { id: number; date: string }[];
+      const updatedSections = formatLogsIntoSections(rawLogs);
+      setSections(updatedSections);
+    } catch (err) {
+      console.error('Error deleting log:', err);
+    }
   };
-
   return (
     <>
       <View style={styles.header}>
@@ -95,15 +108,17 @@ export default function LogsScreen() {
           <Text style={styles.subtitle}>Your water intake history</Text>
         </View>
       </View>
+
       <View style={styles.logsContainer}>
         {sections.length > 0 && (
           <Pressable onPress={handleDeleteToggle} style={styles.deleteButton}>
             <Text style={styles.deleteText}>{deleteText}</Text>
           </Pressable>
         )}
+
         {sections.length > 0 ? (
           <SectionList
-            style ={styles.section}
+            style={styles.section}
             sections={sections}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
@@ -180,11 +195,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: wp('10%'),
   },
-
   section: {
     backgroundColor: 'transparent',
   },
-  
   sectionHeader: {
     fontSize: hp('2%'),
     fontFamily: 'Inter-SemiBold',
