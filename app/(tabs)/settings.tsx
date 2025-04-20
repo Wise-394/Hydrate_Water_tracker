@@ -7,12 +7,11 @@ import CustomModal from '@/app/components/Modal';
 import SettingsItem from "../components/SettingsItem";
 import { resetKeyValue } from "@/utils/keyValue";
 import { useWaterLog } from '@/contexts/WaterLogContext';
-
 export default function SettingsScreen() {
   const db = useSQLiteContext();
   const { refreshKey, triggerRefresh } = useWaterLog();  
   const [modalVisible, setModalVisible] = useState(false);
-
+  type SettingsIcon = 'cup-water' | 'restore' | 'information-outline';
   useEffect(() => {
     const initialize = async () => {
       await initDB(db);
@@ -43,10 +42,11 @@ export default function SettingsScreen() {
   };
 
   const dataSettings = [
-    { id: '1', text: "Change daily cup intake", onPress: () => setModalVisible(true) },
-    { id: '2', text: "Reset Data", onPress: handleReset },
-    { id: '3', text: "About", onPress: () => console.log("About pressed") },
+    { id: '1', text: "Change daily cup intake", icon: 'cup-water' as SettingsIcon, onPress: () => setModalVisible(true) },
+    { id: '2', text: "Reset Data", icon: 'restore' as SettingsIcon, onPress: handleReset },
+    { id: '3', text: "About", icon: 'information-outline' as SettingsIcon, onPress: () => console.log("About pressed") },
   ];
+  
 
   return (
     <>
@@ -63,6 +63,7 @@ export default function SettingsScreen() {
           renderItem={({ item, index }) => (
             <SettingsItem
               text={item.text}
+              icon={item.icon}
               onPress={item.onPress}
               isLast={index === dataSettings.length - 1}
             />
@@ -84,48 +85,52 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#EAF6FF',
   },
   header: {
-    paddingTop: hp('5%'),
-    paddingBottom: hp('2%'),
+    paddingTop: hp('6%'),
+    paddingBottom: hp('3%'),
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.5)',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    marginBottom: 10,
+    backgroundColor: '#5498FF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
   },
   content: {
     flex: 1,
     paddingHorizontal: wp('5%'),
+    backgroundColor: '#EAF6FF',
   },
   image: {
-    width: wp("30%"),
-    height: hp("15%"),
+    width: wp("25%"),
+    height: hp("13%"),
     resizeMode: "contain",
   },
   listContainer: {
     paddingBottom: hp('3%'),
   },
   title: {
-    fontSize: hp('3.5%'),
+    fontSize: hp('3.2%'),
     fontWeight: 'bold',
-    color: '#2c3e50',
+    color: 'white',
     marginTop: hp('1%'),
     fontFamily: 'Inter-Bold',
   },
   subtitle: {
-    fontSize: hp('1.8%'),
-    color: '#7f8c8d',
-    marginBottom: hp('1%'),
+    fontSize: hp('2%'),
+    color: 'white',
     fontFamily: 'Inter-Regular',
+    opacity: 0.9,
   },
   sectionTitle: {
     fontSize: hp('2.5%'),
     fontWeight: '600',
     color: '#2c3e50',
     marginVertical: hp('2%'),
-    paddingLeft: 10,
+    paddingLeft: 5,
     fontFamily: 'Inter-SemiBold',
   },
 });

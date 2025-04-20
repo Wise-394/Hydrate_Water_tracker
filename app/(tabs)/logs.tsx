@@ -1,8 +1,7 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, SectionList, StyleSheet, Pressable } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
-import { initDB, getAllWaterLogs } from '@/utils/database';
+import { initDB, getAllWaterLogs, deleteWaterLog } from '@/utils/database';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import LogsList from '@/app/components/LogsList';
 import { useWaterLog } from '@/contexts/WaterLogContext';
@@ -13,11 +12,14 @@ interface WaterLog {
   time: string;
 }
 
+interface SectionData {
+  title: string;
+  data: WaterLog[];
+}
+
 const getLogs = async (db: any) => {
-  // Fetching all water logs
   const logs = await getAllWaterLogs(db) as { id: number; date: string }[];
 
-  // Formatting the logs
   const formattedLogs = logs.map(log => {
     const dateObj = new Date(log.date);
 
@@ -43,73 +45,118 @@ const getLogs = async (db: any) => {
     };
   });
 
-  return formattedLogs;
+  const grouped: Record<string, WaterLog[]> = {};
+  formattedLogs.forEach(log => {
+    if (!grouped[log.date]) grouped[log.date] = [];
+    grouped[log.date].push(log);
+  });
+
+  const sections: SectionData[] = Object.entries(grouped).map(([date, logs]) => ({
+    title: date,
+    data: logs,
+  }));
+
+  return sections;
 };
+
 export default function LogsScreen() {
   const { refreshKey } = useWaterLog();
   const db = useSQLiteContext();
-  const [data, setData] = useState<WaterLog[]>([]);
+  const [sections, setSections] = useState<SectionData[]>([]);
+  const [visible, setVisible] = useState(false);
+  const [deleteText, setDeleteText] = useState('delete');
 
   useEffect(() => {
     const initialize = async () => {
       await initDB(db);
       const logs = await getLogs(db);
-      setData(logs);
+      setSections(logs);
     };
 
     initialize();
   }, [db, refreshKey]);
-  
 
+  const handleDeleteToggle = () => {
+    setVisible(!visible);
+    setDeleteText(visible ? 'delete' : 'hide');
+  };
 
+  const handleDeleteLog = async (id: number) => {
+    await deleteWaterLog(db, id);
+    const logs = await getLogs(db);
+    setSections(logs);
+  };
 
   return (
-      <><View style={styles.header}>
-      <Text style={styles.title}>Hydration Logs</Text>
-      <Text style={styles.subtitle}>Your water intake history</Text>
-    </View><View style={styles.logsContainer}>
-        {data.length > 0 ? (
-          <FlatList
-            data={data}
+    <>
+      <View style={styles.header}>
+        <Text style={styles.title}>Hydration Logs</Text>
+        <View style={styles.headerContainer}>
+          <Text style={styles.subtitle}>Your water intake history</Text>
+        </View>
+      </View>
+      <View style={styles.logsContainer}>
+        {sections.length > 0 && (
+          <Pressable onPress={handleDeleteToggle} style={styles.deleteButton}>
+            <Text style={styles.deleteText}>{deleteText}</Text>
+          </Pressable>
+        )}
+        {sections.length > 0 ? (
+          <SectionList
+            style ={styles.section}
+            sections={sections}
             keyExtractor={(item) => item.id.toString()}
-            renderItem={LogsList}
+            renderItem={({ item }) => (
+              <LogsList item={item} visible={visible} onPress={() => handleDeleteLog(item.id)} />
+            )}
+            renderSectionHeader={({ section: { title } }) => (
+              <Text style={styles.sectionHeader}>{title}</Text>
+            )}
             contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false} />
+            showsVerticalScrollIndicator={false}
+          />
         ) : (
           <View style={styles.emptyState}>
             <Text style={styles.emptyText}>No water logs found</Text>
             <Text style={styles.emptySubtext}>Your hydration history will appear here</Text>
           </View>
         )}
-      </View></>
+      </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   header: {
     paddingTop: hp('4%'),
     paddingBottom: hp('2%'),
     paddingHorizontal: wp('5%'),
+    backgroundColor: '#5498FF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 6,
   },
   title: {
     fontSize: hp('3.5%'),
     fontWeight: 'bold',
-    color: '#2c3e50',
+    color: '#fff',
     fontFamily: 'Inter-Bold',
   },
   subtitle: {
-    fontSize: hp('1.8%'),
-    color: '#7f8c8d',
+    color: '#fff',
+  },
+  headerContainer: {
+    flexDirection: 'row',
     marginTop: hp('0.5%'),
-    fontFamily: 'Inter-Regular',
+    justifyContent: 'space-between',
   },
   logsContainer: {
     flex: 1,
     paddingHorizontal: wp('5%'),
     paddingTop: hp('1%'),
+    backgroundColor: '#e6f2ff',
   },
   listContent: {
     paddingBottom: hp('3%'),
@@ -132,5 +179,46 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     textAlign: 'center',
     paddingHorizontal: wp('10%'),
+  },
+
+  section: {
+    backgroundColor: 'transparent',
+  },
+  
+  sectionHeader: {
+    fontSize: hp('2%'),
+    fontFamily: 'Inter-SemiBold',
+    color: '#ffffff',
+    backgroundColor: '#5498FF',
+    paddingVertical: hp('1%'),
+    paddingHorizontal: wp('4%'),
+    borderRadius: wp('3%'),
+    marginTop: hp('1.5%'),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    overflow: 'hidden',
+  },
+  deleteButton: {
+    paddingVertical: hp('0.5%'),
+    paddingHorizontal: wp('3%'),
+    backgroundColor: '#5498FF',
+    borderRadius: wp('2%'),
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: hp('2%'),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    alignSelf: 'flex-end',
+  },
+  deleteText: {
+    color: '#fff',
+    fontSize: hp('1.6%'),
+    fontFamily: 'Inter-Medium',
   },
 });
