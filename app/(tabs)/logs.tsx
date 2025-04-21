@@ -51,12 +51,13 @@ const formatLogsIntoSections = (logs: { id: number; date: string }[]): SectionDa
 
 export default function LogsScreen() {
   const db = useSQLiteContext();
-  const { refreshKey } = useWaterLog();
+  const { refreshKey, triggerRefresh } = useWaterLog();
 
   const [sections, setSections] = useState<SectionData[]>([]);
   const [visible, setVisible] = useState(false);
   const [deleteText, setDeleteText] = useState('delete');
   const [initialized, setInitialized] = useState(false);
+  
 
   useEffect(() => {
     const initialize = async () => {
@@ -96,6 +97,7 @@ export default function LogsScreen() {
       const rawLogs = await getAllWaterLogs(db) as { id: number; date: string }[];
       const updatedSections = formatLogsIntoSections(rawLogs);
       setSections(updatedSections);
+      triggerRefresh()
     } catch (err) {
       console.error('Error deleting log:', err);
     }
