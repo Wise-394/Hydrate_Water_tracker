@@ -58,16 +58,22 @@ export const getWeeklyWaterLogs = async (db: SQLiteDatabase): Promise<number> =>
   return result[0]?.count ?? 0;
 };
 
-export const getWaterLogsByDay = async (db: SQLiteDatabase, specifiedDate: string): Promise<CountResult[]> => {
-  const result = await db.getAllAsync<CountResult>(
-    `SELECT * 
-     FROM waterLogs 
-     WHERE date(date) = date(?)`, 
-    [specifiedDate]
+export const getWaterLogsLast7Days = async (
+  db: SQLiteDatabase
+): Promise<{ date: string; count: number }[]> => {
+  const result = await db.getAllAsync<{ date: string; count: number }>(
+    `SELECT 
+        DATE(datetime(date)) as date, 
+        COUNT(*) as count
+     FROM waterLogs
+     WHERE datetime(date) >= datetime('now', '-6 days') 
+       AND datetime(date) <= datetime('now', 'localtime')
+     GROUP BY DATE(datetime(date))
+     ORDER BY DATE(datetime(date))`
   );
-
   return result ?? [];
 };
+
 
 export const updateWaterLog = async (db: SQLiteDatabase, id: number, newDate: string) => {
   await db.runAsync("UPDATE waterLogs SET date = ? WHERE id = ?;", [newDate, id]);

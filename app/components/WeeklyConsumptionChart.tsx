@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
@@ -13,19 +13,31 @@ interface Props {
 }
 
 const WeeklyConsumptionChart = ({ goal, weeklyData }: Props) => {
-  const legendItems = [
-    { color: '#5498FF', label: 'Daily Intake' },
-    { color: '#3D7BD9', label: 'Highest Day' },
-  ];
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Scroll to the end after the component mounts or when data changes
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100); // Delay to ensure content is fully rendered
+    }
+  }, [weeklyData]);
 
   return (
     <View style={styles.cardContainer}>
       <Text style={styles.cardTitle}>Weekly Consumption</Text>
 
-      <View style={styles.chartContainer}>
+      <ScrollView
+        horizontal
+        ref={scrollViewRef}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.chartContainer}
+      >
         <BarChart
           data={weeklyData}
-          scrollToEnd
+          autoShiftLabels
+          isAnimated
           barWidth={wp('8%')}
           spacing={wp('5%')}
           initialSpacing={wp('3%')}
@@ -48,30 +60,21 @@ const WeeklyConsumptionChart = ({ goal, weeklyData }: Props) => {
             fontSize: hp('1.6%'),
             fontFamily: 'Inter-Medium',
           }}
-          showReferenceLine1
+          showReferenceLine1={true}
           referenceLine1Position={goal}
           referenceLine1Config={{
-            color: '#5498FF',
-            dashWidth: 2,
-            dashGap: 3,
+            color: '#003366', // Dark blue color
+            dashWidth: 6,
+            dashGap: 2,
             labelText: 'Goal',
             labelTextStyle: {
-              color: '#5498FF',
+              color: '#003366', // Dark blue for the label
               fontFamily: 'Inter-SemiBold',
-              fontSize: hp('1.4%'),
+              fontSize: hp('1.6%'),
             },
           }}
         />
-      </View>
-
-      <View style={styles.legendContainer}>
-        {legendItems.map((item, index) => (
-          <View key={index} style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: item.color }]} />
-            <Text style={styles.legendText}>{item.label}</Text>
-          </View>
-        ))}
-      </View>
+      </ScrollView>
 
       <Text style={styles.chartNote}>
         Your daily goal: <Text style={styles.goalText}>{goal} glasses</Text>
@@ -106,27 +109,6 @@ const styles = StyleSheet.create({
     marginVertical: hp('1%'),
     paddingHorizontal: wp('2%'),
     overflow: 'hidden',
-  },
-  legendContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: hp('1.5%'),
-    gap: wp('8%'),
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  legendColor: {
-    width: wp('4.5%'),
-    height: wp('4.5%'),
-    borderRadius: wp('2.5%'),
-    marginRight: wp('2%'),
-  },
-  legendText: {
-    color: '#475569',
-    fontSize: hp('1.6%'),
-    fontFamily: 'Inter-Medium',
   },
   chartNote: {
     color: '#64748B',
