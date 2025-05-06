@@ -7,11 +7,13 @@ import CustomModal from '@/app/components/Modal';
 import SettingsItem from "../components/SettingsItem";
 import { resetKeyValue } from "@/utils/keyValue";
 import { useWaterLog } from '@/contexts/WaterLogContext';
+import { useRouter } from 'expo-router';
 export default function SettingsScreen() {
   const db = useSQLiteContext();
   const { refreshKey, triggerRefresh } = useWaterLog();  
   const [modalVisible, setModalVisible] = useState(false);
   type SettingsIcon = 'cup-water' | 'restore' | 'information-outline';
+  const router = useRouter();
   useEffect(() => {
     const initialize = async () => {
       await initDB(db);
@@ -44,7 +46,7 @@ export default function SettingsScreen() {
   const dataSettings = [
     { id: '1', text: "Change daily cup intake", icon: 'cup-water' as SettingsIcon, onPress: () => setModalVisible(true) },
     { id: '2', text: "Reset Data", icon: 'restore' as SettingsIcon, onPress: handleReset },
-    { id: '3', text: "About", icon: 'information-outline' as SettingsIcon, onPress: () => console.log("About pressed") },
+    { id: '3', text: "About", icon: 'information-outline' as SettingsIcon, onPress: () => router.navigate('/about') },
   ];
   
 

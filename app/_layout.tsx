@@ -19,6 +19,7 @@ export default function RootLayout() {
         <SQLiteProvider databaseName="waterLogs">
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="about"  options={{ headerShown: false }} />
           </Stack>
         </SQLiteProvider>
       </WaterLogProvider>
