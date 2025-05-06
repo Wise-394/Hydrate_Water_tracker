@@ -11,7 +11,7 @@ Hydrate Water Tracker is a simple and user-friendly React Native app designed to
 - **Progress Dashboard** – Visualize your daily hydration with dynamic charts.
 
 ## Tech Stack  
-![ReactNative](https://img.shields.io/badge/React-blue?style=for-the-badge&logo=react&logoColor=white)
+![ReactNative](https://img.shields.io/badge/Reactnative-blue?style=for-the-badge&logo=react&logoColor=white)
 ![Expo](https://img.shields.io/badge/Expo-blue?style=for-the-badge&logo=expo&logoColor=white)
 ![Sqlite](https://img.shields.io/badge/sqlite-blue?style=for-the-badge&logo=sqlite&logoColor=white)
 
